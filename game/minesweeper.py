@@ -62,16 +62,42 @@ class MinesweeperGame:
         cell = self.get_cell(x_position, y_position)
         return self._reveal_cell(cell)
 
+    def set_flag_on_cell_position(self, x_position: int, y_position: int, is_flagged: bool):
+        if self.is_over:
+            raise MinesweeperException("Cant set flag on cell, the game is over.")
+        cell = self.get_cell(x_position, y_position)
+        cell.set_flag(is_flagged)
+        self.set_if_game_won()
+
     def _reveal_cell(self, cell):
         if cell.is_revealed:
+            # recursive call
             return
+
         visible_state = cell.reveal()
         if isinstance(visible_state, MineCellState):
             self.was_lost = True
         elif isinstance(visible_state, EmptyCellState) and visible_state.adjacent_mines == 0:
             for adj_cell in cell.adjacent_cells:
                 self._reveal_cell(adj_cell)
+        self.set_if_game_won()
         return visible_state
+
+    def set_if_game_won(self):
+        """
+        The game was won it visible boards only has empty cells and flags,
+        and the number of flags equals the number of mines
+        """
+        flag_count = 0
+        for x_position in range(self.columns):
+            for y_position in range(self.rows):
+                visible_state = self.get_cell(x_position, y_position).visible_state
+                if not isinstance(visible_state, EmptyCellState) and not isinstance(visible_state, FlaggedCellState):
+                    return
+                if isinstance(visible_state, FlaggedCellState):
+                    flag_count += 1
+        if flag_count == self.mines:
+            self.was_won = True
 
     def _create_board(self):
         """
@@ -117,6 +143,14 @@ class HiddenCellState(VisibleCellState):
         return 'hidden'
 
 
+class FlaggedCellState(VisibleCellState):
+    def __eq__(self, other):
+        return isinstance(other, FlaggedCellState)
+
+    def __repr__(self):
+        return 'flag'
+
+
 class MineCellState(VisibleCellState):
     def __eq__(self, other):
         return isinstance(other, MineCellState)
@@ -144,6 +178,7 @@ class MinesweeperCell:
         self.has_mine = False
         self.is_revealed = False
         self.adjacent_cells = []
+        self.is_flagged = False
 
     def add_mine(self):
         self.has_mine = True
@@ -160,8 +195,15 @@ class MinesweeperCell:
         return mine_count
 
     def reveal(self):
+        if self.is_flagged:
+            raise MinesweeperException("Can not reveal cell, it is flagged.")
         self.is_revealed = True
         return self.visible_state
+
+    def set_flag(self, is_flagged: bool):
+        if self.is_revealed:
+            raise MinesweeperException("Cant set flag on cell, the cell is already revealed.")
+        self.is_flagged = is_flagged
 
     @property
     def visible_state(self):
@@ -172,4 +214,6 @@ class MinesweeperCell:
             if self.has_mine:
                 return MineCellState()
             return EmptyCellState(self._adjacents_mine_count)
+        if self.is_flagged:
+            return FlaggedCellState()
         return HiddenCellState()
