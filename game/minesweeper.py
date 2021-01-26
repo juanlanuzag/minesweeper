@@ -30,19 +30,8 @@ class MinesweeperGame:
     def from_board(cls, board):
         columns = len(board)
         rows = len(board[0])
-        mines = cls.get_mine_count(board)
+        mines = cls._get_mine_count(board)
         return cls(columns, rows, mines, board)
-
-    @staticmethod
-    def get_mine_count(board):
-        columns = len(board)
-        rows = len(board[0])
-        mines = 0
-        for x_position in range(columns):
-            for y_position in range(rows):
-                if board[x_position][y_position].has_mine:
-                    mines += 1
-        return mines
 
     def get_cell(self, x_position: int, y_position: int):
         return self.board[x_position][y_position]
@@ -65,7 +54,18 @@ class MinesweeperGame:
             raise MinesweeperException("Cant set flag on cell, the game is over.")
         cell = self.get_cell(x_position, y_position)
         cell.set_flag(is_flagged)
-        self.set_if_game_won()
+        self._set_if_game_won()
+
+    @staticmethod
+    def _get_mine_count(board):
+        columns = len(board)
+        rows = len(board[0])
+        mines = 0
+        for x_position in range(columns):
+            for y_position in range(rows):
+                if board[x_position][y_position].has_mine:
+                    mines += 1
+        return mines
 
     def _reveal_cell(self, cell):
         if cell.is_revealed:
@@ -78,10 +78,10 @@ class MinesweeperGame:
         elif isinstance(visible_state, EmptyCellState) and visible_state.adjacent_mines == 0:
             for adj_cell in cell.adjacent_cells:
                 self._reveal_cell(adj_cell)
-        self.set_if_game_won()
+        self._set_if_game_won()
         return visible_state
 
-    def set_if_game_won(self):
+    def _set_if_game_won(self):
         """
         The game was won it visible boards only has empty cells and flags,
         and the number of flags equals the number of mines
@@ -118,9 +118,9 @@ class MinesweeperGame:
         for x_position in range(self.columns):
             for y_position in range(self.rows):
                 cell = self.get_cell(x_position, y_position)
-                cell.set_adjacent_cells(self.get_adjacent_cells(cell))
+                cell.set_adjacent_cells(self._get_adjacent_cells(cell))
 
-    def get_adjacent_cells(self, cell):
+    def _get_adjacent_cells(self, cell):
         x_position = cell.x_position
         y_position = cell.y_position
         return {self.get_cell(x, y)
