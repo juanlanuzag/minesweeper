@@ -1,6 +1,7 @@
 import itertools
 import random
 from enum import Enum
+from typing import Optional
 
 
 class MinesweeperException(Exception):
@@ -55,11 +56,19 @@ class MinesweeperGame:
             for x_position in range(self.columns)
         ]
 
-    def reveal_cell(self, x_position: int, y_position: int):
+    def reveal_cell_position(self, x_position: int, y_position: int):
         cell = self.get_cell(x_position, y_position)
+        return self._reveal_cell(cell)
+
+    def _reveal_cell(self, cell):
+        if cell.is_revealed:
+            return
         visible_state = cell.reveal()
-        if visible_state == VisibleCellState.MINE:
+        if isinstance(visible_state, MineCellState):
             self.was_lost = True
+        elif isinstance(visible_state, EmptyCellState) and visible_state.adjacent_mines == 0:
+            for adj_cell in cell.adjacent_cells:
+                self._reveal_cell(adj_cell)
         return visible_state
 
     def _create_board(self):
@@ -94,9 +103,36 @@ class MinesweeperGame:
                 if (x, y) != (x_position, y_position)}
 
 
-class VisibleCellState(Enum):
-    HIDDEN = 0
-    MINE = 1
+class VisibleCellState:
+    pass
+
+
+class HiddenCellState(VisibleCellState):
+    def __eq__(self, other):
+        return isinstance(other, HiddenCellState)
+
+    def __repr__(self):
+        return 'hidden'
+
+
+class MineCellState(VisibleCellState):
+    def __eq__(self, other):
+        return isinstance(other, MineCellState)
+
+    def __repr__(self):
+        return 'mine'
+
+
+class EmptyCellState(VisibleCellState):
+    def __init__(self, adjacent_mines: int):
+        self.adjacent_mines = adjacent_mines
+        super().__init__()
+
+    def __repr__(self):
+        return str(self.adjacent_mines)
+
+    def __eq__(self, other):
+        return isinstance(other, EmptyCellState) and self.adjacent_mines == other.adjacent_mines
 
 
 class MinesweeperCell:
@@ -113,6 +149,14 @@ class MinesweeperCell:
     def set_adjacent_cells(self, cells):
         self.adjacent_cells = cells
 
+    @property
+    def _adjacents_mine_count(self):
+        mine_count = 0
+        for cell in self.adjacent_cells:
+            if cell.has_mine:
+                mine_count += 1
+        return mine_count
+
     def reveal(self):
         self.is_revealed = True
         return self.visible_state
@@ -122,6 +166,8 @@ class MinesweeperCell:
         """
         State of the cell that the player sees
         """
-        if self.is_revealed and self.has_mine:
-            return VisibleCellState.MINE
-        return VisibleCellState.HIDDEN
+        if self.is_revealed:
+            if self.has_mine:
+                return MineCellState()
+            return EmptyCellState(self._adjacents_mine_count)
+        return HiddenCellState()
