@@ -1,7 +1,5 @@
 import itertools
 import random
-from enum import Enum
-from typing import Optional
 
 
 class MinesweeperException(Exception):

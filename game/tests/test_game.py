@@ -30,10 +30,8 @@ def test_create_game_makes_a_board_with_correct_dimensions_mine_count_and_all_ce
     assert actual_mine_count == expected_mine_count
 
 
-def test_player_starts_with_all_cells_hidden():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
+def test_player_starts_with_all_cells_hidden(board_5_by_5):
+    board = board_5_by_5
 
     game = MinesweeperGame.from_board(board)
     hidden = HiddenCellState()
@@ -85,32 +83,26 @@ def test_adjacent_cells_of_each_cell_can_be_accessed():
                               (0, 3),         (2, 3)}
 
 
-def test_revealing_a_cell_with_a_mine_ends_the_game_as_looser():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    board[0][0].add_mine()
+def test_revealing_a_cell_with_a_mine_ends_the_game_as_looser(board_5_by_5):
+    board_5_by_5[0][0].add_mine()
 
-    game = MinesweeperGame.from_board(board)
+    game = MinesweeperGame.from_board(board_5_by_5)
     cell_state = game.reveal_cell_position(0, 0)
     assert isinstance(cell_state, MineCellState)
     assert game.is_over
     assert game.was_lost
 
 
-def test_revealing_a_cell_without_a_mine_shows_the_number_of_mines_around_it():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    board[0][0].add_mine()
-    board[1][0].add_mine()
-    board[2][0].add_mine()
-    board[0][1].add_mine()
-    board[2][1].add_mine()
-    board[0][2].add_mine()
-    board[1][2].add_mine()
-    board[2][2].add_mine()
-    game = MinesweeperGame.from_board(board)
+def test_revealing_a_cell_without_a_mine_shows_the_number_of_mines_around_it(board_5_by_5):
+    board_5_by_5[0][0].add_mine()
+    board_5_by_5[1][0].add_mine()
+    board_5_by_5[2][0].add_mine()
+    board_5_by_5[0][1].add_mine()
+    board_5_by_5[2][1].add_mine()
+    board_5_by_5[0][2].add_mine()
+    board_5_by_5[1][2].add_mine()
+    board_5_by_5[2][2].add_mine()
+    game = MinesweeperGame.from_board(board_5_by_5)
 
     cell_state = game.reveal_cell_position(1, 1)
     assert isinstance(cell_state, EmptyCellState)
@@ -128,16 +120,13 @@ def test_revealing_a_cell_without_a_mine_shows_the_number_of_mines_around_it():
     assert not game.is_over
 
 
-def test_revealing_a_cell_without_mines_around_it_reveals_adjacent_cells():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    board[2][0].add_mine()
-    board[2][1].add_mine()
-    board[2][2].add_mine()
-    board[1][2].add_mine()
-    board[0][2].add_mine()
-    game = MinesweeperGame.from_board(board)
+def test_revealing_a_cell_without_mines_around_it_reveals_adjacent_cells(board_5_by_5):
+    board_5_by_5[2][0].add_mine()
+    board_5_by_5[2][1].add_mine()
+    board_5_by_5[2][2].add_mine()
+    board_5_by_5[1][2].add_mine()
+    board_5_by_5[0][2].add_mine()
+    game = MinesweeperGame.from_board(board_5_by_5)
 
     cell_state = game.reveal_cell_position(0, 0)
     assert isinstance(cell_state, EmptyCellState)
@@ -154,12 +143,9 @@ def test_revealing_a_cell_without_mines_around_it_reveals_adjacent_cells():
     assert not game.is_over
 
 
-def test_revealing_a_cell_without_mines_around_it_reveals_adjacent_cells_recursively():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    board[4][4].add_mine()
-    game = MinesweeperGame.from_board(board)
+def test_revealing_a_cell_without_mines_around_it_reveals_adjacent_cells_recursively(board_5_by_5):
+    board_5_by_5[4][4].add_mine()
+    game = MinesweeperGame.from_board(board_5_by_5)
 
     cell_state = game.reveal_cell_position(0, 0)
     assert isinstance(cell_state, EmptyCellState)
@@ -177,13 +163,10 @@ def test_revealing_a_cell_without_mines_around_it_reveals_adjacent_cells_recursi
     assert not game.is_over
 
 
-def test_cant_reveal_cells_when_game_is_over():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    board[0][0].add_mine()
+def test_cant_reveal_cells_when_game_is_over(board_5_by_5):
+    board_5_by_5[0][0].add_mine()
 
-    game = MinesweeperGame.from_board(board)
+    game = MinesweeperGame.from_board(board_5_by_5)
     cell_state = game.reveal_cell_position(0, 0)
     assert isinstance(cell_state, MineCellState)
     assert game.is_over
@@ -193,13 +176,10 @@ def test_cant_reveal_cells_when_game_is_over():
     assert str(excinfo.value) == "Can not reveal cell, the game is over."
 
 
-def test_cant_reveal_flagged_cells():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    board[0][0].add_mine()
+def test_cant_reveal_flagged_cells(board_5_by_5):
+    board_5_by_5[0][0].add_mine()
 
-    game = MinesweeperGame.from_board(board)
+    game = MinesweeperGame.from_board(board_5_by_5)
     game.set_flag_on_cell_position(1, 1, is_flagged=True)
 
     with pytest.raises(MinesweeperException) as excinfo:
@@ -208,13 +188,10 @@ def test_cant_reveal_flagged_cells():
     assert not game.is_over
 
 
-def test_cant_flag_cells_when_game_is_over():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    board[0][0].add_mine()
+def test_cant_flag_cells_when_game_is_over(board_5_by_5):
+    board_5_by_5[0][0].add_mine()
 
-    game = MinesweeperGame.from_board(board)
+    game = MinesweeperGame.from_board(board_5_by_5)
     cell_state = game.reveal_cell_position(0, 0)
     assert isinstance(cell_state, MineCellState)
     assert game.is_over
@@ -224,19 +201,16 @@ def test_cant_flag_cells_when_game_is_over():
     assert str(excinfo.value) == "Cant set flag on cell, the game is over."
 
 
-def test_cant_flag_revealed_cell():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    board[0][0].add_mine()
-    board[1][0].add_mine()
-    board[2][0].add_mine()
-    board[0][1].add_mine()
-    board[2][1].add_mine()
-    board[0][2].add_mine()
-    board[1][2].add_mine()
-    board[2][2].add_mine()
-    game = MinesweeperGame.from_board(board)
+def test_cant_flag_revealed_cell(board_5_by_5):
+    board_5_by_5[0][0].add_mine()
+    board_5_by_5[1][0].add_mine()
+    board_5_by_5[2][0].add_mine()
+    board_5_by_5[0][1].add_mine()
+    board_5_by_5[2][1].add_mine()
+    board_5_by_5[0][2].add_mine()
+    board_5_by_5[1][2].add_mine()
+    board_5_by_5[2][2].add_mine()
+    game = MinesweeperGame.from_board(board_5_by_5)
 
     cell_state = game.reveal_cell_position(1, 1)
     assert isinstance(cell_state, EmptyCellState)
@@ -249,11 +223,8 @@ def test_cant_flag_revealed_cell():
     assert not game.is_over
 
 
-def test_flagging_a_cell_shows_it_on_the_board():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    game = MinesweeperGame.from_board(board)
+def test_flagging_a_cell_shows_it_on_the_board(board_5_by_5):
+    game = MinesweeperGame.from_board(board_5_by_5)
 
     game.set_flag_on_cell_position(1, 1, is_flagged=True)
     hidden = HiddenCellState()
@@ -266,15 +237,12 @@ def test_flagging_a_cell_shows_it_on_the_board():
     assert not game.is_over
 
 
-def test_player_wins_the_game_when_all_mines_are_flagged_and_no_other_cells_are_hidden():
-    board = [
-        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
-    ]
-    board[0][0].add_mine()
-    board[2][2].add_mine()
-    board[3][0].add_mine()
+def test_player_wins_the_game_when_all_mines_are_flagged_and_no_other_cells_are_hidden(board_5_by_5):
+    board_5_by_5[0][0].add_mine()
+    board_5_by_5[2][2].add_mine()
+    board_5_by_5[3][0].add_mine()
 
-    game = MinesweeperGame.from_board(board)
+    game = MinesweeperGame.from_board(board_5_by_5)
 
     cell_state = game.reveal_cell_position(4, 4)
 
