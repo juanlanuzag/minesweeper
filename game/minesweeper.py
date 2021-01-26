@@ -57,6 +57,8 @@ class MinesweeperGame:
         ]
 
     def reveal_cell_position(self, x_position: int, y_position: int):
+        if self.is_over:
+            raise MinesweeperException("Can not reveal cell, the game is over.")
         cell = self.get_cell(x_position, y_position)
         return self._reveal_cell(cell)
 

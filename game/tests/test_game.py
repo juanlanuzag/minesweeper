@@ -95,6 +95,7 @@ def test_revealing_a_cell_with_a_mine_ends_the_game_as_looser():
     cell_state = game.reveal_cell_position(0, 0)
     assert isinstance(cell_state, MineCellState)
     assert game.is_over
+    assert game.was_lost
 
 
 def test_revealing_a_cell_without_a_mine_shows_the_number_of_mines_around_it():
@@ -174,3 +175,19 @@ def test_revealing_a_cell_without_mines_around_it_reveals_adjacent_cells_recursi
     assert game.visible_board == expected_board
 
     assert not game.is_over
+
+
+def test_cant_reveal_cells_when_game_is_over():
+    board = [
+        [MinesweeperCell(x_position, y_position) for y_position in range(5)] for x_position in range(5)
+    ]
+    board[0][0].add_mine()
+
+    game = MinesweeperGame.from_board(board)
+    cell_state = game.reveal_cell_position(0, 0)
+    assert isinstance(cell_state, MineCellState)
+    assert game.is_over
+
+    with pytest.raises(MinesweeperException) as excinfo:
+        game.reveal_cell_position(1, 1)
+    assert str(excinfo.value) == "Can not reveal cell, the game is over."
