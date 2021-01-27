@@ -7,24 +7,20 @@ class MinesweeperException(Exception):
 
 
 class MinesweeperGame:
-    def __init__(self, columns: int, rows: int, mines: int, board=None):
-        if mines > rows * columns:
-            raise MinesweeperException("The board can not have more mines than cells")
-
+    def __init__(self, columns: int, rows: int, mines: int, board):
         self.rows = rows
         self.columns = columns
         self.mines = mines
         self.was_lost = False
         self.was_won = False
-        if board:
-            self.board = board
-        else:
-            self.board = self._create_board()
+        self.board = board
         self._set_adjacent_cells()
 
-    @property
-    def is_over(self):
-        return self.was_won or self.was_lost
+    @classmethod
+    def new_game(cls, columns, rows, mines):
+        cls._validate_dimensions(columns, rows, mines)
+        board = cls._create_board(columns, rows, mines)
+        return cls(columns, rows, mines, board)
 
     @classmethod
     def from_board(cls, board):
@@ -32,6 +28,33 @@ class MinesweeperGame:
         rows = len(board[0])
         mines = cls._get_mine_count(board)
         return cls(columns, rows, mines, board)
+
+    @classmethod
+    def _validate_dimensions(cls, columns, rows, mines):
+        if mines > rows * columns:
+            raise MinesweeperException("The board can not have more mines than cells")
+
+    @classmethod
+    def _create_board(cls, columns, rows, mines):
+        """
+        Positions in the board look like:
+        (0,0)  (1,0) (2,0)
+        (0,1)  (1,1) (2,1)
+        (0,2)  (1,2) (2,2)
+        """
+        board = [
+            [MinesweeperCell(x_position, y_position) for y_position in range(rows)]
+            for x_position in range(columns)
+        ]
+        mine_positions = random.sample(list(itertools.product(range(columns), range(rows))), k=mines)
+
+        for x_position, y_position in mine_positions:
+            board[x_position][y_position].add_mine()
+        return board
+
+    @property
+    def is_over(self):
+        return self.was_won or self.was_lost
 
     def get_cell(self, x_position: int, y_position: int):
         return self.board[x_position][y_position]
@@ -96,23 +119,6 @@ class MinesweeperGame:
                     flag_count += 1
         if flag_count == self.mines:
             self.was_won = True
-
-    def _create_board(self):
-        """
-        Positions in the board look like:
-        (0,0)  (1,0) (2,0)
-        (0,1)  (1,1) (2,1)
-        (0,2)  (1,2) (2,2)
-        """
-        board = [
-            [MinesweeperCell(x_position, y_position) for y_position in range(self.rows)]
-            for x_position in range(self.columns)
-        ]
-        mine_positions = random.sample(list(itertools.product(range(self.columns), range(self.rows))), k=self.mines)
-
-        for x_position, y_position in mine_positions:
-            board[x_position][y_position].add_mine()
-        return board
 
     def _set_adjacent_cells(self):
         for x_position in range(self.columns):

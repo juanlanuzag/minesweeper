@@ -6,7 +6,7 @@ from game.minesweeper import MinesweeperGame, MinesweeperException, VisibleCellS
 
 def test_cant_create_game_with_more_mines_than_cells():
     with pytest.raises(MinesweeperException) as excinfo:
-        MinesweeperGame(10, 10, 101)
+        MinesweeperGame.new_game(10, 10, 101)
     assert str(excinfo.value) == "The board can not have more mines than cells"
 
 
@@ -14,7 +14,7 @@ def test_create_game_makes_a_board_with_correct_dimensions_mine_count_and_all_ce
     columns = 4
     rows = 10
     expected_mine_count = 5
-    game = MinesweeperGame(columns, rows, expected_mine_count)
+    game = MinesweeperGame.new_game(columns, rows, expected_mine_count)
     assert len(game.board) == 4
     assert all([len(column) == 10 for column in game.board])
     assert not game.is_over
