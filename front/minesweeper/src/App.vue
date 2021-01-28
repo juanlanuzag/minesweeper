@@ -1,8 +1,8 @@
 <template>
   <div id="app">
+    <h1>Minesweeper</h1>
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+      <router-link to="/">List</router-link>
     </div>
     <router-view/>
   </div>
