@@ -2,6 +2,9 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from game.minesweeper import MinesweeperGame
+from game.models import Game
+
 
 def assert_starting_game_status(data):
     assert data['rows'] == 10
@@ -77,3 +80,27 @@ def test_flag_cell_returns_updated_game_with_a_flag_on_the_cell():
     assert all(cell == 'hidden' for cell in cells[1:])
 
 
+@pytest.mark.django_db
+def test_reveal_cell_returns_updated_game(board_5_by_5):
+    """
+    Since board has no mine, revealing one cell wins the game
+    """
+    minesweeper_game = MinesweeperGame.from_board(board_5_by_5)
+    game = Game.objects.create_from_minesweeper_game(minesweeper_game)
+
+    client = APIClient()
+    response = client.post(f'/api/minesweeper/{game.id}/reveal_cell/',
+                           data={'x_position': 0, 'y_position': 0}, format='json')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['rows'] == 5
+    assert response.data['columns'] == 5
+    assert response.data['mines'] == 0
+    assert not response.data['was_lost']
+    assert response.data['was_won']
+    assert response.data['is_over']
+    cells = [cell for column in response.data['board'] for cell in column]
+    assert len(response.data['board']) == 5
+    assert len(response.data['board'][0]) == 5
+    assert len(cells) == 25
+    assert all(cell == '0' for cell in cells[1:])
