@@ -28,7 +28,7 @@ class Game(models.Model):
                                 json_cell['is_flagged']) for json_cell in column
             ] for column in self.board
         ]
-        return MinesweeperGame(self.columns, self.rows, self.mines, board)
+        return MinesweeperGame(self.columns, self.rows, self.mines, board, self.was_won, self.was_lost)
 
     def update_from_minesweeper_game(self, minesweeper_game):
         self.columns = minesweeper_game.columns

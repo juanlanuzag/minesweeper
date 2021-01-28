@@ -7,12 +7,12 @@ class MinesweeperException(Exception):
 
 
 class MinesweeperGame:
-    def __init__(self, columns: int, rows: int, mines: int, board):
+    def __init__(self, columns: int, rows: int, mines: int, board, was_won=False, was_lost=False):
         self.rows = rows
         self.columns = columns
         self.mines = mines
-        self.was_lost = False
-        self.was_won = False
+        self.was_won = was_won
+        self.was_lost = was_lost
         self.board = board
         self._set_adjacent_cells()
 

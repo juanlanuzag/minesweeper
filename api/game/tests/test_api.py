@@ -104,3 +104,43 @@ def test_reveal_cell_returns_updated_game(board_5_by_5):
     assert len(response.data['board'][0]) == 5
     assert len(cells) == 25
     assert all(cell == '0' for cell in cells[1:])
+
+
+@pytest.mark.django_db
+def test_cant_flag_cell_if_game_is_over():
+    client = APIClient()
+    response = client.post('/api/minesweeper/', {'rows': 5, 'columns': 5, 'mines': 25}, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
+    game_id = response.data['id']
+    response = client.post(f'/api/minesweeper/{game_id}/reveal_cell/',
+                           data={'x_position': 0, 'y_position': 0}, format='json')
+    # Since all cells have mines, we already lost
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['was_lost']
+    assert not response.data['was_won']
+    assert response.data['is_over']
+
+    response = client.post(f'/api/minesweeper/{game_id}/flag_cell/',
+                           data={'x_position': 1, 'y_position': 1, 'is_flagged': True}, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert str(response.data[0]) == 'Cant set flag on cell, the game is over.'
+
+
+@pytest.mark.django_db
+def test_cant_reveal_cell_if_game_is_over():
+    client = APIClient()
+    response = client.post('/api/minesweeper/', {'rows': 5, 'columns': 5, 'mines': 25}, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
+    game_id = response.data['id']
+    response = client.post(f'/api/minesweeper/{game_id}/reveal_cell/',
+                           data={'x_position': 0, 'y_position': 0}, format='json')
+    # Since all cells have mines, we already lost
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['was_lost']
+    assert not response.data['was_won']
+    assert response.data['is_over']
+
+    response = client.post(f'/api/minesweeper/{game_id}/reveal_cell/',
+                           data={'x_position': 1, 'y_position': 1}, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert str(response.data[0]) == 'Can not reveal cell, the game is over.'
