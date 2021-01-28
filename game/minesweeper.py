@@ -90,23 +90,38 @@ class MinesweeperGame:
                     mines += 1
         return mines
 
-    def _reveal_cell(self, cell):
-        if cell.is_revealed:
-            # recursive call
-            return
+    def get_board_as_json(self):
+        return [
+            [self.get_cell(x_position, y_position).as_json() for y_position in range(self.rows)]
+            for x_position in range(self.columns)
+        ]
 
+    @staticmethod
+    def get_visible_board_state(json_board):
+        return [
+            [
+                str(MinesweeperCell.get_visible_state(
+                    cell['is_revealed'], cell['has_mine'],
+                    cell['is_flagged'], cell['adjacent_mine_count']))
+                for cell in column
+            ]
+            for column in json_board
+        ]
+
+    def _reveal_cell(self, cell):
         visible_state = cell.reveal()
         if isinstance(visible_state, MineCellState):
             self.was_lost = True
         elif isinstance(visible_state, EmptyCellState) and visible_state.adjacent_mines == 0:
             for adj_cell in cell.adjacent_cells:
-                self._reveal_cell(adj_cell)
+                if not adj_cell.is_revealed:
+                    self._reveal_cell(adj_cell)
         self._set_if_game_won()
         return visible_state
 
     def _set_if_game_won(self):
         """
-        The game was won it visible boards only has empty cells and flags,
+        The game was won if visible boards only has empty cells and flags,
         and the number of flags equals the number of mines
         """
         flag_count = 0
@@ -211,13 +226,28 @@ class MinesweeperCell:
 
     @property
     def visible_state(self):
+        return self.get_visible_state(self.is_revealed, self.has_mine,
+                                      self.is_flagged, self._adjacents_mine_count)
+
+    @staticmethod
+    def get_visible_state(is_revealed, has_mine, is_flagged, adjacent_mine_count):
         """
         State of the cell that the player sees
         """
-        if self.is_revealed:
-            if self.has_mine:
+        if is_revealed:
+            if has_mine:
                 return MineCellState()
-            return EmptyCellState(self._adjacents_mine_count)
-        if self.is_flagged:
+            return EmptyCellState(adjacent_mine_count)
+        if is_flagged:
             return FlaggedCellState()
         return HiddenCellState()
+
+    def as_json(self):
+        return {
+            'x_position': self.x_position,
+            'y_position': self.y_position,
+            'has_mine': self.has_mine,
+            'is_revealed': self.is_revealed,
+            'is_flagged': self.is_flagged,
+            'adjacent_mine_count': self._adjacents_mine_count
+        }
