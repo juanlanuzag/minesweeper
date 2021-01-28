@@ -191,13 +191,13 @@ class EmptyCellState(VisibleCellState):
 
 
 class MinesweeperCell:
-    def __init__(self, x_position: int, y_position: int):
+    def __init__(self, x_position: int, y_position: int, has_mine=False, is_revealed=False, is_flagged=False):
         self.x_position = x_position
         self.y_position = y_position
-        self.has_mine = False
-        self.is_revealed = False
+        self.has_mine = has_mine
+        self.is_revealed = is_revealed
+        self.is_flagged = is_flagged
         self.adjacent_cells = []
-        self.is_flagged = False
 
     def add_mine(self):
         self.has_mine = True

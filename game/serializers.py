@@ -27,4 +27,4 @@ class GameSerializer(serializers.ModelSerializer):
         rows = validated_data.get('rows')
         mines = validated_data.get('mines')
         game = MinesweeperGame.new_game(columns=columns, rows=rows, mines=mines)
-        return Game.objects.create(board=game.get_board_as_json(), **validated_data)
+        return Game.objects.create_from_minesweeper_game(game)

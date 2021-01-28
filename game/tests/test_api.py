@@ -36,3 +36,44 @@ def test_retreive_minesweeper_finds_the_game_by_id_and_returns_its_complete_stat
     response = client.get(f'/api/minesweeper/{game_id}/', format='json')
     assert response.status_code == status.HTTP_200_OK
     assert_starting_game_status(response.data)
+
+
+@pytest.mark.django_db
+def test_list_minesweeper_returns_all_games():
+    client = APIClient()
+    # Create 11 games
+    for _ in range(11):
+        response = client.post('/api/minesweeper/', {'rows': 10, 'columns': 10, 'mines': 10}, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
+    response = client.get(f'/api/minesweeper/', format='json')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 11
+    for game in response.data:
+        assert_starting_game_status(game)
+
+
+@pytest.mark.django_db
+def test_flag_cell_returns_updated_game_with_a_flag_on_the_cell():
+    client = APIClient()
+    response = client.post('/api/minesweeper/', {'rows': 5, 'columns': 5, 'mines': 5}, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
+    game_id = response.data['id']
+    response = client.post(f'/api/minesweeper/{game_id}/flag_cell/',
+                           data={'x_position': 0, 'y_position': 0, 'is_flagged': True}, format='json')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['rows'] == 5
+    assert response.data['columns'] == 5
+    assert response.data['mines'] == 5
+    assert not response.data['was_lost']
+    assert not response.data['was_won']
+    assert not response.data['is_over']
+    cells = [cell for column in response.data['board'] for cell in column]
+    assert len(response.data['board']) == 5
+    assert len(response.data['board'][0]) == 5
+    assert len(cells) == 25
+    assert cells[0] == 'flag'
+    assert all(cell == 'hidden' for cell in cells[1:])
+
+
