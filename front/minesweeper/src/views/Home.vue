@@ -34,8 +34,8 @@
 </template>
 
 <script>
-import axios from 'axios';
 import router from "../router";
+import MinesweeperClient from "../api/MinesweeperClient";
 
 
 export default {
@@ -52,19 +52,13 @@ export default {
   },
   methods: {
     new_game() {
-      axios
-      .post(`http://localhost:8000/api/minesweeper/`,
-              {rows: this.rows, columns: this.columns, mines: this.mines})
-      .then(response => {
-          let id = response.data.id;
-          router.push(`/game/${id}`)
+      MinesweeperClient.new_game(this.rows, this.columns, this.mines)
+                       .then(game => { router.push(`/game/${game.id}`);
       })
     },
   },
   mounted () {
-    axios
-      .get('http://localhost:8000/api/minesweeper/')
-      .then(response => (this.games = response.data))
+    MinesweeperClient.list().then(games => (this.games = games));
   }
 }
 </script>

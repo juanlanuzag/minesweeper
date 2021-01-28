@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import MinesweeperClient from "../api/MinesweeperClient";
 
 
 export default {
@@ -36,9 +36,8 @@ export default {
     }
   },
   mounted () {
-    axios
-      .get(`http://localhost:8000/api/minesweeper/${this.$route.params.id}`)
-      .then(response => (this.game = response.data))
+    MinesweeperClient.retrieve(this.$route.params.id)
+                     .then(game => this.game = game)
   },
   methods: {
     cell_display_text(cell) {
@@ -48,16 +47,13 @@ export default {
       return cell;
     },
     reveal_cell(x_position, y_position) {
-      axios
-      .post(`http://localhost:8000/api/minesweeper/${this.$route.params.id}/reveal_cell/`,
-              {x_position, y_position })
-      .then(response => (this.game = response.data))
+      MinesweeperClient.reveal_cell(this.$route.params.id, x_position, y_position)
+                       .then(game => (this.game = game))
     },
     flag_cell(x_position, y_position) {
-      axios
-      .post(`http://localhost:8000/api/minesweeper/${this.$route.params.id}/flag_cell/`,
-              {x_position, y_position, is_flagged: true })
-      .then(response => (this.game = response.data))
+      const is_flagged = true;
+      MinesweeperClient.flag_cell(this.$route.params.id, x_position, y_position, is_flagged)
+                       .then(game => (this.game = game));
     },
   },
   computed: {
