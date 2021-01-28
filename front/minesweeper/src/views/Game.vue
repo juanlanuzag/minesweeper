@@ -2,11 +2,14 @@
   <div class="container" v-if="game">
     <div class="row">
       <div class="col"> Rows: {{game.rows}} </div>
-      <div class="col"> Columns: {{game.rows}} </div>
+      <div class="col"> Columns: {{game.columns}} </div>
       <div class="col"> Mines: {{game.mines}} </div>
     </div>
-    <div class="row">
-      <div class="col"> <h3>{{game_status}}</h3> </div>
+    <div v-if="game_status" class="row justify-content-end my-3">
+      <div class="col-4"> <h3>{{game_status}}</h3> </div>
+      <div class="col-4">
+        <button type="button" class="btn btn-primary" @click="new_game">New Game</button>
+      </div>
     </div>
     <div class="row">
       <div class="col board">
@@ -25,6 +28,7 @@
 
 <script>
 import MinesweeperClient from "../api/MinesweeperClient";
+import router from "../router";
 
 
 export default {
@@ -54,6 +58,11 @@ export default {
       const is_flagged = true;
       MinesweeperClient.flag_cell(this.$route.params.id, x_position, y_position, is_flagged)
                        .then(game => (this.game = game));
+    },
+    new_game() {
+      MinesweeperClient.new_game(this.game.rows, this.game.columns, this.game.mines)
+                       .then(game => { router.push(`/game/${game.id}`);
+      })
     },
   },
   computed: {
