@@ -16,7 +16,7 @@
         <div class="board-col" v-for="(column, col_index) in board_to_display" :key="`col-${col_index}`">
           <div class="board-cell" v-for="(cell, row_index) in column"
                :key="`row-${col_index}-${row_index}`" @click.left="reveal_cell(col_index, row_index)"
-               @click.right="flag_cell(col_index, row_index)"
+               @click.right="flag_cell(col_index, row_index, $event)"
           >
             {{cell}}
           </div>
@@ -40,10 +40,13 @@ export default {
     }
   },
   mounted () {
-    MinesweeperClient.retrieve(this.$route.params.id)
-                     .then(game => this.game = game)
+    this.loadGame();
   },
   methods: {
+    loadGame() {
+          MinesweeperClient.retrieve(this.$route.params.id)
+                     .then(game => this.game = game);
+    },
     cell_display_text(cell) {
       if (cell === 'hidden') return '';
       if (cell === 'mine') return 'M';
@@ -54,14 +57,18 @@ export default {
       MinesweeperClient.reveal_cell(this.$route.params.id, x_position, y_position)
                        .then(game => (this.game = game))
     },
-    flag_cell(x_position, y_position) {
+    flag_cell(x_position, y_position, event) {
+      if (event) {
+        event.preventDefault()
+      }
       const is_flagged = true;
       MinesweeperClient.flag_cell(this.$route.params.id, x_position, y_position, is_flagged)
                        .then(game => (this.game = game));
     },
     new_game() {
       MinesweeperClient.new_game(this.game.rows, this.game.columns, this.game.mines)
-                       .then(game => { router.push(`/game/${game.id}`);
+                       .then(game => {
+                         router.push(`/game/${game.id}`);
       })
     },
   },
@@ -75,6 +82,9 @@ export default {
       if (!this.game) return null;
       return this.game.board.map(row => row.map(this.cell_display_text))
     }
+  },
+  watch: {
+      '$route': 'loadGame'
   }
 }
 </script>
