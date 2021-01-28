@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -8,7 +8,10 @@ from game.models import Game
 from game.serializers import GameSerializer
 
 
-class MinesweeperGameViewSet(viewsets.ModelViewSet):
+class MinesweeperGameViewSet(mixins.CreateModelMixin,
+                             mixins.RetrieveModelMixin,
+                             mixins.ListModelMixin,
+                             viewsets.GenericViewSet):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
 
